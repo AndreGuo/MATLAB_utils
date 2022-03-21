@@ -23,7 +23,7 @@ function sdr2020_ = tonemap2446m3(img, varargin)
     % Output argments (1):
     %  'sdr2020_'     - m-by-n-by-3 RGB image array in [0,1]
     %                   normalized tone-mapped SDR, can be linear or 
-    %                   non-linear, in same BT.2020 gamut
+    %                   BT.709/2020 non-linearity, in same BT.2020 gamut
 
     p = inputParser;
     addRequired(p,'img',@(x)validateattributes(x,...
@@ -114,6 +114,8 @@ function sdr2020_ = tonemap2446m3(img, varargin)
     % normalized SDR to [0,1]
     sdr2020_ = (sdr2020./100.0);
     if p.Results.linear_output == false
-        sdr2020_ = sdr2020_.^0.4545;
+        oetf709 = @(x)((1.099*x-0.099).*(x<=1 & x>=0.018) + ...
+            (4.5*x).*(x>0.018 & x>=0));
+        sdr2020_ = oetf709(sdr2020);
     end
 

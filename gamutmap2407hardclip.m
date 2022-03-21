@@ -14,15 +14,15 @@ function rgb709_hc = gamutmap2407hardclip(img, varargin)
     %
     %  Optional (2):
     %  'oetf'         - char:
-    %                   'gamma' (default, actually BT.1886)
-    %                   'PQ' | 'HLG' | (use when img is not tone-mapped)
+    %                   'gamma' (default, refer to oetf of BT.709/2020)
+    %                   'PQ' | 'HLG' | (use for HDR img (not tone-mapped))
     %  'target_gamut' - char:
     %                   'srgb' (default) | 'adobergb'
     %
     % Output argments (1):
     %  'rgb709_hc'    - m-by-n-by-3 RGB image array in [0,1]
     %                   normalized gamut-mapped SDR, in gamma non-linear
-    %                   and BT.709 gamut
+    %                   and BT.709/srgb or adobergb gamut
     %
     % Require MATLAB version >= 2020b for 'rgbwide2xyz()'
     
