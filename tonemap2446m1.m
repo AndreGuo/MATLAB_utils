@@ -13,6 +13,9 @@ function RGBTMO_ = tonemap2446m1(img, varargin)
     %  Optional (4):
     %  'oetf'         - char:
     %                   'PQ' (default) | 'HLG' | 'gamma'
+    %  'linear_output'- bool:
+    %                   if output SDR array is linear 
+    %                   false (default) | true
     %  'color_scaling'- bool:
     %                   specify if applying color scaling function
     %                   accroding to original recomendation
@@ -23,14 +26,16 @@ function RGBTMO_ = tonemap2446m1(img, varargin)
     %
     % Output argments (1):
     %  'RGBTMO_'      - m-by-n-by-3 RGB image array in [0,1]
-    %                   normalized tone-mapped SDR, in BT.709/2020 
-    %                   non-linearity, in same BT.2020 gamut
+    %                   normalized tone-mapped SDR, in linear or non-
+    %                   linearity (~gamma(1/0.45)), in same BT.2020 gamut
 
     p = inputParser;
     addRequired(p,'img',@(x)validateattributes(x,...
         {'numeric'},{'size',[NaN,NaN,3]}))
     addOptional(p,'oetf','PQ',@(x)validateattributes(x,...
         {'char'},{'nonempty'}))
+    addOptional(p,'linear_output',false,@(x)validateattributes(x,...
+        {'logical'},{'nonempty'}))
     addOptional(p,'color_scaling',false,@(x)validateattributes(x,...
         {'logical'},{'nonempty'}))
     addOptional(p,'l_hdr',1000,@(x)validateattributes(x,...
@@ -71,7 +76,7 @@ function RGBTMO_ = tonemap2446m1(img, varargin)
         + 0.0593*hdr2020_(:,:,3);
 
     % TABLE 1 RAW 3: tonemapping step 1
-    rhoHDR = 1+32*(p.Results.l_hdr/10000)^(1/2.4); % 13.2598;
+    rhoHDR = 1+32*(p.Results.l_hdr/10000)^(1/2.4); % 13.2598 default
     Yp_ = log10(1+(rhoHDR-1).*Y_)./log10(rhoHDR);
 
     % TABLE 1 RAW 4: tonemapping step 2
@@ -81,7 +86,7 @@ function RGBTMO_ = tonemap2446m1(img, varargin)
     Yc_ = tm2(Yp_);
 
     % TABLE 1 RAW 5: tonemapping step 3
-    rhoSDR = 1+32*(p.Results.l_sdr/10000)^(1/2.4); % 5.6970
+    rhoSDR = 1+32*(p.Results.l_sdr/10000)^(1/2.4); % 5.6970 default
     YSDR_ = (rhoSDR.^Yc_ - 1)./(rhoSDR - 1);
 
     % TABLE 2 RAW 1 & 2: color differencr signals
@@ -98,18 +103,39 @@ function RGBTMO_ = tonemap2446m1(img, varargin)
     end
 
     % TABLE 2 RAW 3: adjust luma component
-    YTMO_ = YSDR_-max(0.1*CrTMO_, zeros(size(CrTMO_)));
+    adjust = 0.1*CrTMO_;
+    adjust(adjust<0) = 0;
+    YTMO_ = YSDR_ - adjust;
+    % YTMO_ = YSDR_-max(0.1*CrTMO_, zeros(size(CrTMO_)));
 
     % TABLE 2 RAW 4: color space conversion
-    % we didn't use func. ycbcr2rgbwide() introduced in ver 2020b for
-    % following reason: 1. it process limit-range, unnormalized value;
-    % 2. it's designed for 
-    ycbcrtorgb = [1.00000 -1.01295e-06 1.47460;...
-        0.98390	-0.16190 -0.56215;...
-        1.18404	1.85112	-0.10515];
+    %
+    ycbcr2rgb2020 = [1.00000 0.00000 1.47460;...
+                     1.00000 -0.16455 -0.57135;...
+                     1.00000 1.88140 0.00000];
     matrix = @(rgb,m)(cat(3,...
         (m(1,1)*rgb(:,:,1)+m(1,2)*rgb(:,:,2)+m(1,3)*rgb(:,:,3)),...
         (m(2,1)*rgb(:,:,1)+m(2,2)*rgb(:,:,2)+m(2,3)*rgb(:,:,3)),...
         (m(3,1)*rgb(:,:,1)+m(3,2)*rgb(:,:,2)+m(3,3)*rgb(:,:,3))));
     YCbCrTMO_ = cat(3, YTMO_, CbTMO_, CrTMO_);
-    RGBTMO_ = matrix(YCbCrTMO_, ycbcrtorgb);
+    RGBTMO_ = matrix(YCbCrTMO_, ycbcr2rgb2020);
+    %
+    % can also use func. ycbcr2rgbwide() introduced in ver 2020b
+    %{
+    % [0,1] to [256,3760] (Y)
+    full2limit1 = @(x)(uint16(3504*x+256));
+    % [-0.5,0,0.5] to [256,2048,3840] (Cb & Cr)
+    full2limit2 = @(x)(uint16(3584*x+2048));
+    YTMO_ = full2limit1(YTMO_);
+    CbTMO_ = full2limit2(CbTMO_);
+    CrTMO_ = full2limit2(CrTMO_);
+    YCbCrTMO_ = cat(3, YTMO_, CbTMO_, CrTMO_);
+    RGBTMO_ = ycbcr2rgbwide(YCbCrTMO_, 12);
+    limit2full = @(x)((1/3504)*double(x)-(256/3504)); % [256,3760] to [0,1]
+    RGBTMO_ = limit2full(RGBTMO_);
+    %}
+
+    if p.Results.linear_output == true
+        % linearize
+        RGBTMO_ = RGBTMO_.^(1/0.45);
+    end
