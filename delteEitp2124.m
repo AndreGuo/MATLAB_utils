@@ -42,11 +42,11 @@ function deltaE = delteEitp2124(img, ref, varargin)
             eotf = @(x)((max((x.^(1/m2)-c1), zeros(size(x)))...
                 ./(c2-c3.*(x.^(1/m2)))).^(1/m1));
         case 'HLG'
-            a = 0.17883277; b = 0.02372241; c = 1.00429347;
+            a = 0.17883277; b = 0.28466892; c = 0.55991073;
             eotf = @(x)(((x.^2)/3).*(x>=0 & x<=1/2) +...
-                (exp((x-c)/a)+b).*(x>1/2 & x<=1));
+                ((exp((x-c)/a)+b)/12).*(x>1/2 & x<=1));
         case 'gamma'
-            eotf = @(x)(x.^2.2);
+            eotf = @(x)(x.^(1/0.45));
         otherwise
             error('Unsupported OETF!')
     end
@@ -70,11 +70,10 @@ function deltaE = delteEitp2124(img, ref, varargin)
         case 'PQ'
             oetf = @(x)(((c1+c2*(x.^m1))./(1+c3*(x.^m1))).^m2);
         case 'HLG'
-            b = 0.28466892; c = 0.55991073; % b & c is different !!!
             oetf = @(x)((sqrt(3*x)).*(x>=0 & x<=1/12) +...
                 (a*log(12*x-b)+c).*(x>1/12 & x<=1));
         case 'gamma'
-            oetf = @(x)(x.^(1/2.2));
+            oetf = @(x)(x.^0.45);
         otherwise
             error('Unsupported OETF!')
     end
