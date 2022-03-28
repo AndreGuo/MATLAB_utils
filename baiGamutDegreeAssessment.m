@@ -1,4 +1,4 @@
-function degree = baiGamutDegreeAssessment(img, varargin)
+function [degree, varargout] = baiGamutDegreeAssessment(img, varargin)
     % Copyright: guocheng@cuc.edu.cn, 1 Dec 2021
     %
     % Un-official implementation of METHOD 2 "gamut degree assessment" in
@@ -27,10 +27,19 @@ function degree = baiGamutDegreeAssessment(img, varargin)
     %                    enter its filename TO output the image with
     %                   'target_gamut' hard-clipped from BT.2020 gamut.
     %                   .png format is recommended.
-    % 'output_ogg_heatmap': (our extension)
+    % 'output_oog_heatmap': (our extension)
     %                    enter its filename TO output a normalized heatmap
     %                    telling the position and degree of OOG (out of
     %                    gamut) or so-called hard-clipped pixels.
+    %
+    % Onput argsuments:
+    % 'degree':    when 'output_clipped709' & 'output_oog_heatmap' == false
+    % ['degree', 'HardChipped709']:
+    %      when 'output_clipped709' == true & 'output_oog_heatmap' == false
+    % ['degree', ~, 'OOGHeatmap']
+    %      when 'output_clipped709' == false & 'output_oog_heatmap' == true
+    % ['degree', 'HardChipped709', 'OOGHeatmap']
+    %       when 'output_clipped709' == true & 'output_oog_heatmap' == true
     %
     % Note:
     %  1. This function requires a MATLAB version >= R2020b;
@@ -47,8 +56,10 @@ function degree = baiGamutDegreeAssessment(img, varargin)
         {'char'},{'nonempty'}))
     addOptional(p,'compare_mode','XYZ',@(x)validateattributes(x,...
         {'char'},{'nonempty'}))
-    addOptional(p,'output_clipped709','')
-    addOptional(p,'output_ogg_heatmap','')
+    addOptional(p,'output_clipped709',false,@(x)validateattributes(x,...
+        {'logical'},{'nonempty'}))
+    addOptional(p,'output_oog_heatmap',false,@(x)validateattributes(x,...
+        {'logical'},{'nonempty'}))
     parse(p,img,varargin{:})
 
     % PATH 1 (above path in paper's Fig. 9): XYZ after hard-chip
@@ -84,13 +95,13 @@ function degree = baiGamutDegreeAssessment(img, varargin)
             error('Unsupported Target Gamut!')
     end
 
-    % hard clip OGG RGB values accroding to simple method (BT.2407 §2, RGB
+    % hard clip OOG RGB values accroding to simple method (BT.2407 §2, RGB
     % values <0 or >1 are clipped to 0 or 1)
     rgb709_clipped = rgb709;
     rgb709_clipped(rgb709_clipped<0) = 0;
     rgb709_clipped(rgb709_clipped>1) = 1;
-    if isempty(p.Results.output_clipped709) == false
-        imwrite(rgb709_clipped, p.Results.output_clipped709);
+    if p.Results.output_clipped709 == true
+        varargout{1} = rgb709_clipped;
     end
 
     switch p.Results.target_gamut % M2
@@ -148,10 +159,7 @@ function degree = baiGamutDegreeAssessment(img, varargin)
     % max distance is 0.275068397068084, by feeding a 4096*4096*3 CMS test
     % pattern containing all 256^3 possiable color combinations)
     degree = mean(distance(:))/0.275068397068084;
-    if isempty(p.Results.output_ogg_heatmap) == false
-        % minmaxnorm = @(x)((x-min(x(:)))/(max(x(:)-min(x(:)))));
-        imwrite(distance, trubo(60), p.Results.output_ogg_heatmap)
-        % imshow(distance,[], 'Border','tight');
-        % colormap('jet');
-        % exportgraphics(gca,p.Results.output_ogg_heatmap,'Resolution', 300)
+    if p.Results.output_oog_heatmap == true
+        varargout{2} = distance/0.275068397068084; % which can later use as
+        % imwrite(varargout{2}, trubo(60), 'name.jpg')
     end
