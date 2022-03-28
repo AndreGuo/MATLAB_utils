@@ -11,7 +11,7 @@ function [] = plotImgChromaticity(img, bit_depth, gamut, varargin)
     %                   10 (10bit TV exhancge in uint16) |
     %                   12 (12bit TV exhancge in uint16) |
     %                   16 (16bit .png/.tif/etc. in uint16) |
-    %                   1 (for normalized 32bit float-point .hdr/.exr file)
+    %                   1 (use when 'img' is already normalized to [0,1])
     %  'gamut'        - char:
     %                   'adobergb' | 'srgb' | 'bt709' (same as 'srgb') |
     %                   'bt2020' (default PQ unlinear, see 'wcg_oetf') |
@@ -25,7 +25,8 @@ function [] = plotImgChromaticity(img, bit_depth, gamut, varargin)
     %                   true (for image from some TV exhancge)
     %  'matrix'       - 3-by-3 vetor:
     %                   require when 'gamut' is 'other',
-    %  find more at: brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+    %                   find more at: brucelindbloom.com/...
+    %                   index.html?Eqn_RGB_XYZ_Matrix.html
     %                   below show examples under D65 reference-white:
     %                   [0.4866 0.2657 0.1982;...
     %                    0.2290 0.6917 0.0793;...

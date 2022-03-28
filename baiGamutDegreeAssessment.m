@@ -9,14 +9,14 @@ function degree = baiGamutDegreeAssessment(img, varargin)
     % Input argsuments:
     %  Required (1):
     % 'img'           - m-by-n-by-3 RGB image array: with
-    %                   BT.2020 gamut, nonlinear, ALLREADY NORMALIZED!
+    %                   BT.2020 primaries, nonlinear, normalized to [0,1]
     %                   SHOULD BE: single | double
     %  Optional (6):
     % 'limit_range'   - bool:
     %                   false (default) | true (for some TV exhancge image)
     % 'non_linearity' - char: the EOTF of 'img'
     %                   'PQ' (default) | 'HLG' | 'gamma'
-    % 'target_gamut'  - char: the gamut to hard-clip to.
+    % 'target_gamut'  - char: the narrow gamut to hard-clip to.
     %                   bt709 (default, as oringinal paper) |
     %                   srgb (same as above) | adobergb (our extension)
     % 'compare_mode'  - char:
@@ -29,7 +29,7 @@ function degree = baiGamutDegreeAssessment(img, varargin)
     %                   .png format is recommended.
     % 'output_ogg_heatmap': (our extension)
     %                    enter its filename TO output a normalized heatmap
-    %                    telling the position and degree of OGG (out of
+    %                    telling the position and degree of OOG (out of
     %                    gamut) or so-called hard-clipped pixels.
     %
     % Note:
@@ -145,8 +145,8 @@ function degree = baiGamutDegreeAssessment(img, varargin)
     % (origin paper declare that it occurs when input green [0 1 0],
     % but we found it at [1 0.309803921568627 0.117647058823529] where
     % (XYZ(0.6573 0.3395, 0.0319), xy(0.6390 0.3300), B-R near R)
-    % max distance is 0.275068397068084, by feeding a 4096*4096*3 image
-    % containing all 256^3 possiable color combinations)
+    % max distance is 0.275068397068084, by feeding a 4096*4096*3 CMS test
+    % pattern containing all 256^3 possiable color combinations)
     degree = mean(distance(:))/0.275068397068084;
     if isempty(p.Results.output_ogg_heatmap) == false
         % minmaxnorm = @(x)((x-min(x(:)))/(max(x(:)-min(x(:)))));
