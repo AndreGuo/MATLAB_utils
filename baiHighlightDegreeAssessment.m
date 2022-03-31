@@ -21,6 +21,9 @@ function [degree, varargout] = baiHighlightDegreeAssessment(img, varargin)
     % 'compare_mode'  - char:
     %                   TODO
     %                   'number' | 'distance'
+    % 'defuse_white'  - num:
+    %                   the assummed luminance of defuse white in HDR image
+    %                   203 (default) | 100
     % 'peak_luminance'- num:
     %                   works only when 'non_linearty' is 'PQ' or 'linear'
     %                   1000 (default) | 2000 | 4000 | 10000
@@ -48,6 +51,8 @@ function [degree, varargout] = baiHighlightDegreeAssessment(img, varargin)
         {'char'},{'nonempty'}))
     addOptional(p,'compare_mode','number',@(x)validateattributes(x,...
         {'char'},{'nonempty'}))
+    addOptional(p,'defuse_white',203,@(x)validateattributes(x,...
+        {'numeric'},{'nonempty'}))
     addOptional(p,'peak_luminance',1000,@(x)validateattributes(x,...
         {'numeric'},{'nonempty'}))
     addOptional(p,'output_truncated',false,@(x)validateattributes(x,...
@@ -79,7 +84,7 @@ function [degree, varargout] = baiHighlightDegreeAssessment(img, varargin)
     rgb = eotf(rgb_);
     % We treat values bigger than SDR defuse white (who is recommended to 
     % set to 203nit HDR) as highligh part of an HDR image/frame.
-    DefuseWhiteNormVal = 203/p.Results.peak_luminance;
+    DefuseWhiteNormVal = p.Results.defuse_white/p.Results.peak_luminance;
     % Truncate all highligh value to defuse white
     rgbTruncated = rgb;
     rgbTruncated(rgbTruncated>DefuseWhiteNormVal) = DefuseWhiteNormVal;
