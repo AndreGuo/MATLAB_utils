@@ -23,14 +23,13 @@ function [degree, varargout] = baiGamutDegreeAssessment(img, varargin)
     %                   on which color space the distance will caluculate
     %                   'XYZ' (default, as oringinal paper) |
     %                   'xy' (our extension) | 'Yxy' (same as above)
-    % 'output_clipped709': (our extension)
-    %                    enter its filename TO output the image with
-    %                   'target_gamut' hard-clipped from BT.2020 gamut.
-    %                   .png format is recommended.
-    % 'output_oog_heatmap': (our extension)
-    %                    enter its filename TO output a normalized heatmap
-    %                    telling the position and degree of OOG (out of
-    %                    gamut) or so-called hard-clipped pixels.
+    % 'output_clipped709': (our extension) bool:
+    %                    true TO output the image array with 'target_gamut'
+    %                    hard-clipped from BT.2020 gamut.
+    % 'output_oog_heatmap': (our extension) bool:
+    %                    true TO output a normalized heatmap telling the
+    %                    position and degree of OOG (out of gamut) or
+    %                    so-called hard-clipped pixels.
     %
     % Onput argsuments:
     % 'degree':    when 'output_clipped709' & 'output_oog_heatmap' == false
