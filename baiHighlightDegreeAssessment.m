@@ -27,13 +27,12 @@ function [degree, varargout] = baiHighlightDegreeAssessment(img, varargin)
     % 'peak_luminance'- num:
     %                   works only when 'non_linearty' is 'PQ' or 'linear'
     %                   1000 (default) | 2000 | 4000 | 10000
-    % 'output_truncated': (our extension)
-    %                   enter its filename TO output the image with
-    %                   highlight value truncated.
-    % 'output_heatmap': (our extension)
-    %                   enter its filename TO output a normalized heatmap
-    %                   telling the position and degree of OOG (out of
-    %                   gamut) or so-called hard-clipped pixels.
+    % 'output_truncated': (our extension) bool:
+    %                   true TO output image array with highlight value
+    %                   above 'defuse white' truncated.
+    % 'output_heatmap': (our extension) bool:
+    %                   true TO output a normalized heatmap telling the
+    %                   position and degree of highlight pixels.
     %
     % Onput argsuments:
     % 'degree':         when 'output_truncated' & 'output_heatmap' == false
