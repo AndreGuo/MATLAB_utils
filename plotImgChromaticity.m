@@ -107,7 +107,7 @@ function [] = plotImgChromaticity(img, bit_depth, gamut, varargin)
     end
 
     % normalizing input to [0,1]
-    rgb_norm = double(rgb)/(2^bit_depth);
+    rgb_norm = double(rgb)/(2^bit_depth-1);
     
     if strcmp(gamut,'srgb') == true
         gamut = 'bt709';
